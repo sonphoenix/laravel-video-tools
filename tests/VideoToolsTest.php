@@ -55,33 +55,39 @@ class VideoToolsTest extends TestCase
         if (file_exists($output)) unlink($output);
     }
 
-    /** @test */
-    public function it_can_generate_thumbnail()
-    {
-        $output = sys_get_temp_dir() . '/thumbnail.jpg';
-        $videoTools = new VideoTools();
-        $resultPath = $videoTools->thumbnail($this->tempVideo, $output);
+/** @test */
+public function it_can_generate_thumbnail()
+{
+    $output = sys_get_temp_dir() . '/thumbnail.jpg';
+    $videoTools = new VideoTools();
+    
+    // Try with time "0" instead of "1" for generated videos
+    $resultPath = $videoTools->thumbnail($this->tempVideo, $output, "0");
 
-        $this->assertEquals($output, $resultPath);
-        $this->assertFileExists($output);
+    $this->assertEquals($output, $resultPath);
+    $this->assertFileExists($output);
 
-        // Cleanup
-        if (file_exists($output)) unlink($output);
-    }
+    // Cleanup
+    if (file_exists($output)) unlink($output);
+}
 
-    /** @test */
-    public function it_can_extract_audio()
-    {
-        $output = sys_get_temp_dir() . '/audio.mp3';
-        $videoTools = new VideoTools();
-        $result = $videoTools->extractAudio($this->tempVideo, $output);
+/** @test */
+public function it_can_extract_audio()
+{
+    $videoWithAudio = sys_get_temp_dir() . '/test_video_with_audio.mp4';
+    exec('ffmpeg -y -f lavfi -i color=c=red:s=320x240:d=1 -f lavfi -i sine=frequency=1000:duration=1 -c:v libx264 -c:a aac -shortest ' . escapeshellarg($videoWithAudio));
 
-        $this->assertTrue($result);
-        $this->assertFileExists($output);
+    $output = sys_get_temp_dir() . '/audio.mp3';
+    $videoTools = new VideoTools();
+    $result = $videoTools->extractAudio($videoWithAudio, $output);
 
-        // Cleanup
-        if (file_exists($output)) unlink($output);
-    }
+    $this->assertTrue($result);
+    $this->assertFileExists($output);
+
+    // Cleanup
+    if (file_exists($videoWithAudio)) unlink($videoWithAudio);
+    if (file_exists($output)) unlink($output);
+}
 
     /** @test */
     public function it_can_merge_videos()
